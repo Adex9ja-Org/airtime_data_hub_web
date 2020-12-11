@@ -11,9 +11,18 @@ class CallBackController extends Controller
         parent::__construct();
     }
 
-    public function paymentNotification(Request $request){
+    public function paymentNotification(Request $request, $gateway){
         $inputs = json_decode($request->getContent(), true);
-        $response = $this->mproxy->monifyPaymentNotification($inputs);
+
+        switch ($gateway){
+            case 'paystack':
+                $response = $this->mproxy->paystackPaymentNotification($inputs);
+                break;
+            case 'monify':
+                $response = $this->mproxy->monifyPaymentNotification($inputs);
+                break;
+        }
+
         return json_encode($response);
     }
 

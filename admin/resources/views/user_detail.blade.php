@@ -81,8 +81,12 @@
                             <div class="card-body">
 
                                 <div class="form-group">
+                                    <label class="control-label">BVN Number</label>
+                                    <input readonly type="text" class="form-control" placeholder="BVN number" value="{{  $userDetail->bvn_number }}">
+                                </div>
+                                <div class="form-group">
                                     <label class="control-label">Date of Birth</label>
-                                    <input readonly type="text" class="form-control" placeholder="Enter name" value="{{  $userDetail->dob }}" required>
+                                    <input readonly type="text" class="form-control" placeholder="Enter name" value="{{  $userDetail->dob }}">
                                 </div>
                                 <div class="form-group">
                                     <label class="control-label">Gender</label>

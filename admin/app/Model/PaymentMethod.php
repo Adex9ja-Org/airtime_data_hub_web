@@ -16,4 +16,5 @@ class PaymentMethod
     const Auto = "Auto";
     const Manual = "Manual";
     const Monify = "Monify";
+    const Paystack = "Paystack";
 }
