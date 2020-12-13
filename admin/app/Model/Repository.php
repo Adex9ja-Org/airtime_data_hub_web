@@ -220,12 +220,32 @@ class Repository
         return $this->table->insertNewEntry('user_entity', 'email', $input);
     }
 
-    public function updateUser($input, $args, $encodePassword = false)
+    public function updateUser($input, $email, $encodePassword = false)
     {
-        if($encodePassword)
-            $input['password'] = base64_encode($input['password']);
-        unset($input['auth_token']);
-        return $this->table->updateTable('user_entity', 'email', $args, $input);
+        $old_user = $this->getUserByEmail($email);
+        $isVerified = $old_user->bvn_number != null && $old_user->bvn_number != "";
+        $password = $input['password'] ?? $old_user->password;
+        $enodedPassword = $encodePassword ? base64_encode($password) : $password;
+        $data = [
+            'token' => $input['token'] ?? $old_user->token,
+            'pin' => $input['pin'] ?? $old_user->pin,
+            'gender' => $input['gender'] ?? $old_user->gender,
+            'image_url' => $input['image_url'] ?? $old_user->image_url,
+            'doc_type' => $input['doc_type'] ?? $old_user->doc_type,
+            'doc_url' => $input['doc_url'] ?? $old_user->doc_url,
+            'address' => $input['address'] ?? $old_user->address,
+            'password' => $enodedPassword,
+        ];
+
+
+        if(!$isVerified){
+            $data['fullname'] = $input['fullname'] ?? $old_user->fullname;
+            $data['phoneno'] = $input['phoneno'] ?? $old_user->phoneno;
+            $data['dob'] = $input['dob'] ?? $old_user->dob;
+            $data['bvn_number'] = $input['bvn_number'] ?? $old_user->bvn_number;
+        }
+
+        return $this->table->updateTable('user_entity', 'email', $email, $data);
     }
 
     public function getMonthlyTransactionGraphData()
@@ -565,19 +585,36 @@ class Repository
             return $user->account_number;
     }
 
+    public function paystackPaymentNotification($inputs)
+    {
+        if($inputs['event'] == 'charge.success'){
+            $paystackData = $inputs['data'];
+            $data = [
+                'trans_ref' => $paystackData['reference'],
+                'amount' => $paystackData['amount'] / 101.5,
+                'payment_method' => $paystackData['channel'],
+                'gateway' => PaymentMethod::Paystack,
+                'narration' => $paystackData['gateway_response'],
+                'email' => $paystackData['customer']['email'],
+                'status' => $paystackData['status'],
+            ];
+            $this->table->insertNewEntry('payment_notification_entity', 'trans_ref', $data);
+        }
+        return new JsonResponse("00", "Notified Successfully");
+    }
+
     public function monifyPaymentNotification($inputs)
     {
         $hash = $this->calculateHashValue($inputs);
         if(hash_equals($inputs['transactionHash'], $hash)){
             $data = [
                 'trans_ref' => $inputs['transactionReference'],
-                'payment_ref' => $inputs['paymentReference'],
                 'amount' => $inputs['amountPaid'],
-                'payment_methhod' => $inputs['paymentMethod'],
+                'payment_method' => $inputs['paymentMethod'],
                 'narration' => $inputs['paymentDescription'],
                 'email' => $inputs['customer']['email'],
                 'status' => $inputs['paymentStatus'],
-                'gateway' => 'Monify'
+                'gateway' => PaymentMethod::Monify
             ];
             $this->table->insertNewEntry('payment_notification_entity', 'trans_ref', $data);
             return new JsonResponse("00", "Notified Successfully");
@@ -635,6 +672,7 @@ class Repository
     {
         return DB::selectOne('select  GetA2CWithdrawalBalance(?) as balance', array($email))->balance;
     }
+
 
     private function getAdminEmails()
     {
@@ -1713,3 +1751,5 @@ class Repository
         }
     }
 }
+
+

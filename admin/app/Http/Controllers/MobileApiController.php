@@ -91,7 +91,7 @@ class MobileApiController extends Controller
         $inputs = $request->input();
         $email = $this->mproxy->getEmailFromJwt($request);
         $this->mproxy->updateUserToken($inputs, $email);
-        return json_encode(new JsonResponse("00", 'Token Updated!'));
+        return $this->getUserWithJwt($email, 'Token Updated!');
     }
     public function updateProfileBasic (Request $request){
         $inputs = $request->input();
@@ -131,7 +131,8 @@ class MobileApiController extends Controller
     public function verifyUserPhoneEmail(Request $request, $phone_email){
         $user = $this->mproxy->getUserByEmailPhoneBvn($phone_email);
         $code = $user == null ? "-01" : "00";
-        return json_encode(new JsonResponse($code, null, $user));
+        $message = $user == null ? "User not found!" : "User found!";
+        return json_encode(new JsonResponse($code, $message, $user));
     }
     public function referralCode(Request $request){
         $email = $this->mproxy->getEmailFromJwt($request);
@@ -221,30 +222,10 @@ class MobileApiController extends Controller
     }
     public function postWalletTransaction(Request $request){
         $inputs = $request->input();
-        $tranx = $this->mproxy->verifyPaymentReference($inputs['payment_ref']);
-        if(isset($tranx->status) && $tranx->status && $tranx->data->status == 'success'){
-            $payment = $this->mproxy->getWalletTransByPayRef($inputs['payment_ref']);
-            if($payment == null){
-                $inputs['email'] = $this->mproxy->getEmailFromJwt($request);
-                $inputs['amount'] = $tranx->data->amount / 101.5;
-                $inputs['channel_name'] = 'Paystack';
-                $inputs['narration'] = 'Fund Wallet';
-                $inputs['trans_type'] = TransactionType::CR;
-                $inputs['status'] = ActiveStatus::Active;
-                $this->mproxy->postWalletTransaction($inputs);
-                $transaction = $this->mproxy->getWalletTransByPayRef($inputs['payment_ref']);
-                $this->mproxy->sendFundWalletNotification($transaction, PaymentMethod::Wallet, "Fund Wallet - Card");
-                $code = $transaction == null ? "-01" : "00";
-                $msg = $transaction == null ? "Error Occurs" : "Your wallet account has been successfully credited with N". $transaction->amount;
-            }
-            else{
-                $code = "-01"; $msg = "Payment reference already used!";
-            }
-        }
-        else{
-            $code = "-01"; $msg = "Invalid Transaction!";
-        }
-        return json_encode(new JsonResponse($code, $msg, $transaction ?? null));
+        $transaction = $this->mproxy->getWalletTransByPayRef($inputs['payment_ref']);
+        $amount = $transaction == null ? ($inputs['amount'] / 101.5) : $transaction->amount;
+        $msg = "Your wallet account has been successfully credited with N". $amount;
+        return json_encode(new JsonResponse("00", $msg, $transaction));
     }
     public function productList(Request $request, $arg){
         $productList = $this->mproxy->getProductsByServiceId($arg);
