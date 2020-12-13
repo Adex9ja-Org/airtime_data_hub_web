@@ -605,9 +605,10 @@ class Repository
             return new JsonResponse("-01", "Invalid Username & Password");
     }
 
-    public function getMonifyTrans()
+    public function getMonifyTransList()
     {
-        return $this->table->getItemList('payment_notification_entity', 'trans_ref');
+        $where = [['gateway', '=', PaymentMethod::Monify]];
+        return $this->table->getItemListWithWhere('payment_notification_entity', 'trans_ref', $where);
     }
 
     public function getSettlements()
