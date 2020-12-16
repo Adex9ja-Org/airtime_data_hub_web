@@ -62,14 +62,14 @@ class MobileApiController extends Controller
             if (filter_var($inputs['email'], FILTER_VALIDATE_EMAIL)) {
                 $user = $this->mproxy->getUserByEmailPhoneBvn($inputs['phoneno']);
                 if($user == null){
-                    $this->mproxy->saveNewUser($inputs);
-                    $user = $this->mproxy->getUserByEmail($inputs['email']);
-                    if($user != null) {
-                        $this->mproxy->sendRegMail($user);
-                        return json_encode(new JsonResponse("00", "Registration Successful...Kindly Check your email for a verification link!!"));
-                    }
-                    else
-                        return json_encode(new JsonResponse("-01", "Email already exists"));
+                    $res = $this->mproxy->saveNewUser($inputs);
+//                    $user = $this->mproxy->getUserByEmail($inputs['email']);
+//                    if($user != null) {
+//                        $this->mproxy->sendRegMail($user);
+//                        return json_encode(new JsonResponse("00", "Registration Successful...Kindly Check your email for a verification link!!"));
+//                    }
+//                    else
+                        return json_encode(new JsonResponse("-01", "Email already exists", $res));
                 }
                 else
                     return json_encode(new JsonResponse("-01", "Phone number already exists"));

@@ -83,8 +83,9 @@ class TableEntity extends Model
             if($showMessage)
                 return back()->with('msg', $this->prepareMessage(true, 'Record Inserted Successfully!'));
         } catch (\Throwable $e) {
-            if($showMessage)
-                return back()->with('msg', $this->prepareMessage(false, 'Error Occurs: '. $e->getMessage()));
+//            if($showMessage)
+//                return back()->with('msg', $this->prepareMessage(false, 'Error Occurs: '. $e->getMessage()));
+            return  $e->getMessage();
         }
     }
 
