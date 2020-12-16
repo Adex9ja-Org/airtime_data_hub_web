@@ -211,13 +211,20 @@ class Repository
         return $this->table->getSingleItem('user_entity', 'email', $email);
     }
 
-    public function saveNewUser($input)
+    public function saveNewUser($input, bool $fromAdmin = false)
     {
-        $input['password'] = base64_encode($input['password']);
-        $input['active'] = 1;
+        $data = [
+            'active' => ActiveStatus::Active,
+            'password' => base64_encode($input['password']),
+            'email' => $input['email'],
+            'phoneno' => $input['phoneno'],
+            'fullname' => $input['fullname'],
+            'address' => $input['address'],
+            'userRole' => $fromAdmin ? $input['userRole'] : UserRoles::user,
+        ];
         $referral = $this->table->getSingleItem('referral_entity', 'ref_code', $input['ref_code'] ?? '');
         $input['ref_code'] = $referral == null ? '' : $referral['ref_code'];
-        return $this->table->insertNewEntry('user_entity', 'email', $input);
+        return $this->table->insertNewEntry('user_entity', 'email', $data);
     }
 
     public function updateUser($input, $email, $encodePassword = false)

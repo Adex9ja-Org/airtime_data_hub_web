@@ -120,7 +120,7 @@ class UserController extends Controller
         if($args != null)
             return $this->mproxy->updateUser($inputs, $inputs['email'], true);
         else
-            return $this->mproxy->saveNewUser($inputs);
+            return $this->mproxy->saveNewUser($inputs, true);
     }
     public function userDetail(Request $request, $arg = null){
         $email = base64_decode($arg);

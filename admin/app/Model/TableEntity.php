@@ -28,7 +28,7 @@ class TableEntity extends Model
     {
         try{
             $this->setTablePrimary($table, $primaryKey);
-            unset($inputs['_token']);
+            unset($inputs['auth_token']);
             if($file != null){
                 $filename = $file_ref. '.' . $file->getClientOriginalExtension();
                 $file->move($this->image_path, $filename);
@@ -70,7 +70,7 @@ class TableEntity extends Model
     {
         try {
             $this->setTablePrimary($table, $primaryKey);
-            unset($inputs['_token']);
+            unset($inputs['auth_token']);
             if($file != null){
                 $filename = $file_ref. '.' . $file->getClientOriginalExtension();
                 $file->move($this->image_path, $filename);
@@ -83,9 +83,8 @@ class TableEntity extends Model
             if($showMessage)
                 return back()->with('msg', $this->prepareMessage(true, 'Record Inserted Successfully!'));
         } catch (\Throwable $e) {
-//            if($showMessage)
-//                return back()->with('msg', $this->prepareMessage(false, 'Error Occurs: '. $e->getMessage()));
-            return  $e->getMessage();
+            if($showMessage)
+                return back()->with('msg', $this->prepareMessage(false, 'Error Occurs: '. $e->getMessage()));
         }
     }
 
