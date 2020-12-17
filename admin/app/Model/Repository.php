@@ -211,13 +211,20 @@ class Repository
         return $this->table->getSingleItem('user_entity', 'email', $email);
     }
 
-    public function saveNewUser($input)
+    public function saveNewUser($input, bool $fromAdmin = false)
     {
-        $input['password'] = base64_encode($input['password']);
-        $input['active'] = 1;
+        $data = [
+            'active' => ActiveStatus::Active,
+            'password' => base64_encode($input['password']),
+            'email' => $input['email'],
+            'phoneno' => $input['phoneno'],
+            'fullname' => $input['fullname'],
+            'address' => $input['address'],
+            'userRole' => $fromAdmin ? $input['userRole'] : UserRoles::user,
+        ];
         $referral = $this->table->getSingleItem('referral_entity', 'ref_code', $input['ref_code'] ?? '');
         $input['ref_code'] = $referral == null ? '' : $referral['ref_code'];
-        return $this->table->insertNewEntry('user_entity', 'email', $input);
+        return $this->table->insertNewEntry('user_entity', 'email', $data);
     }
 
     public function updateUser($input, $email, $encodePassword = false)
@@ -642,9 +649,10 @@ class Repository
             return new JsonResponse("-01", "Invalid Username & Password");
     }
 
-    public function getMonifyTrans()
+    public function getMonifyTransList()
     {
-        return $this->table->getItemList('payment_notification_entity', 'trans_ref');
+        $where = [['gateway', '=', PaymentMethod::Monify]];
+        return $this->table->getItemListWithWhere('payment_notification_entity', 'trans_ref', $where);
     }
 
     public function getSettlements()
@@ -1750,5 +1758,3 @@ class Repository
         }
     }
 }
-
-

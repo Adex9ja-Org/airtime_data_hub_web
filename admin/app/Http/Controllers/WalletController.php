@@ -43,7 +43,7 @@ class WalletController extends Controller
     }
 
     public function monifyTransferList(){
-        $bankTransfers = $this->mproxy->getMonifyTrans();
+        $bankTransfers = $this->mproxy->getMonifyTransList();
         return view('wallet_monify_transfer_list', ['bankTransfers' => $bankTransfers]);
     }
 
