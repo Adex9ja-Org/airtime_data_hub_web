@@ -1037,8 +1037,14 @@ class Repository
 
     public function saveUserBank($inputs)
     {
-        $inputs['active'] = 1;
-        $this->table->insertNewEntry('user_bank_entity', 'acc_no', $inputs);
+        $data = [
+            'active' => ActiveStatus::Active,
+            'email' => $inputs['email'],
+            'acc_no' => $inputs['acc_no'],
+            'bank_code' => $inputs['bank_code'],
+            'acc_name' => $inputs['acc_name'],
+        ];
+        $this->table->insertNewEntry('user_bank_entity', 'acc_no', $data);
     }
 
     public function getUserBankByAcctNo($acc_no)

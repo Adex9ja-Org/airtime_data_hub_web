@@ -28,7 +28,7 @@ class TableEntity extends Model
     {
         try{
             $this->setTablePrimary($table, $primaryKey);
-            unset($inputs['auth_token']);
+            unset($inputs['_token']);
             if($file != null){
                 $filename = $file_ref. '.' . $file->getClientOriginalExtension();
                 $file->move($this->image_path, $filename);
@@ -70,7 +70,7 @@ class TableEntity extends Model
     {
         try {
             $this->setTablePrimary($table, $primaryKey);
-            unset($inputs['auth_token']);
+            unset($inputs['_token']);
             if($file != null){
                 $filename = $file_ref. '.' . $file->getClientOriginalExtension();
                 $file->move($this->image_path, $filename);
