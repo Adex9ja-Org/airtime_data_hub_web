@@ -680,6 +680,28 @@ class Repository
         return DB::selectOne('select  GetA2CWithdrawalBalance(?) as balance', array($email))->balance;
     }
 
+    public function reQueryReservedAccount($user)
+    {
+        try {
+            $client = new Client();
+            $result = $client->get( config("app.monify_url") . 'bank-transfer/reserved-accounts/'. $user->phoneno, [
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Authorization' => "Bearer " . $this->getAccessToken(),
+                ],
+            ]);
+            $response = json_decode( $result->getBody(), true );
+            if($response['requestSuccessful']){
+                $accountNumber = $response['responseBody']['accountNumber'];
+                $data = [
+                    'account_number' => $accountNumber
+                ];
+                $this->updateUser($data, $user->email);
+            }
+        }catch (\GuzzleHttp\Exception\RequestException $exception){
+        }
+    }
+
 
     private function getAdminEmails()
     {

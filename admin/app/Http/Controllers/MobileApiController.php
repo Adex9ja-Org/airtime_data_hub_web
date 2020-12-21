@@ -91,6 +91,10 @@ class MobileApiController extends Controller
         $inputs = $request->input();
         $email = $this->mproxy->getEmailFromJwt($request);
         $this->mproxy->updateUserToken($inputs, $email);
+        $user = $this->mproxy->getUserByEmail($email);
+        if($user->account_number == null || $user->account_number == ''){
+            $this->mproxy->reQueryReservedAccount($user);
+        }
         return $this->getUserWithJwt($email, 'Token Updated!');
     }
     public function updateProfileBasic (Request $request){
