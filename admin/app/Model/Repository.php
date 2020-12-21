@@ -693,10 +693,7 @@ class Repository
             $response = json_decode( $result->getBody(), true );
             if($response['requestSuccessful']){
                 $accountNumber = $response['responseBody']['accountNumber'];
-                $data = [
-                    'account_number' => $accountNumber
-                ];
-                $this->updateUser($data, $user->email);
+                $this->updateProvidusAcct($accountNumber, $user->email);
             }
         }catch (\GuzzleHttp\Exception\RequestException $exception){
         }
@@ -1746,10 +1743,7 @@ class Repository
             $response = json_decode( $result->getBody(), true );
             if($response['requestSuccessful']){
                 $accountNumber = $response['responseBody']['accountNumber'];
-                $data = [
-                    'account_number' => $accountNumber
-                ];
-                $this->updateUser($data, $user->email, false);
+                $this->updateProvidusAcct($accountNumber, $user->email);
                 return $accountNumber;
             }
             else
@@ -1784,5 +1778,13 @@ class Repository
             ];
             $this->sendMail('emails.forgot_password', $user->email, 'Account Recovery', [], $data);
         }
+    }
+
+    private function updateProvidusAcct($accountNumber, $email)
+    {
+        $data = [
+            'account_number' => $accountNumber
+        ];
+        return $this->table->updateTable('user_entity', 'email', $email, $data);
     }
 }
