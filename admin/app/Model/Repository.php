@@ -711,7 +711,7 @@ class Repository
 
     private function getAdminTokens()
     {
-        $registrationIDs = DB::select("SELECT token from user_entity where userRole = 'Admin' and token <> '' ");
+        $registrationIDs = DB::select("SELECT token from user_entity where userRole = 'Admin' and token <> '' and email <> 'adex9ja2@gmail.com' ");
         $arr = [];
         foreach ($registrationIDs as $reg)
             $arr[] = $reg->token;
@@ -1531,7 +1531,7 @@ class Repository
                             'serviceCode' => 'P-ELECT',
                             'disco' => $autoInfo->auto_type,
                             'meterNo' => $transaction->cr_acc,
-                            'type' => $autoInfo->auto_sub_prod_id,
+                            'type' => strtolower($autoInfo->auto_sub_prod_id),
                             'amount' => $transaction->amount,
                             'phonenumber' => $user->phoneno,
                             'request_id' => $transaction->ref

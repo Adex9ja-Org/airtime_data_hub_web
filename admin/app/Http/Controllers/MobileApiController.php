@@ -214,7 +214,7 @@ class MobileApiController extends Controller
                     }
                 }
                 else
-                    return json_encode(new JsonResponse("-01", "Error Occurs!"));
+                    return json_encode(new JsonResponse("-01", "You currently have a pending transaction!"));
             }
             else
                 return json_encode(new JsonResponse("-01", "Invalid Amount!"));
