@@ -199,22 +199,26 @@ class MobileApiController extends Controller
         $subProduct = $this->mproxy->getSubProductDetail($inputs['sub_prod_id']);
         if($subProduct->active == 1){
             if($inputs['amount'] > 0){
-                $this->mproxy->postTransaction($inputs , $user, $subProduct);
-                $transaction = $this->mproxy->getTransactionDetailById($inputs['ref']);
-                if($transaction != null){
-                    $this->mproxy->sendPostedTransNotifications($transaction);
-                    if($inputs['service_id'] == Services::Airtime2Cash){
-                        $message = 'Your airtime order has been received successfully. It takes an average of 3-5 minutes to complete this transaction';
-                        return json_encode(new JsonResponse("00", $message, $transaction));
-                    }
-                    else{
-                        $this->mproxy->handlesServicesAutomation($transaction);
-                        $message = $transaction->sub_name . " request has been submitted successfully!";
-                        return json_encode(new JsonResponse("00", $message, $transaction));
-                    }
+                if($inputs['service_id'] == Services::Airtime2Cash && $user->bvn_number != '')
+                    return json_encode(new JsonResponse("-01", "Account not verified!"));
+                else{
+                     $this->mproxy->postTransaction($inputs , $user, $subProduct);
+                     $transaction = $this->mproxy->getTransactionDetailById($inputs['ref']);
+                     if($transaction != null){
+                         $this->mproxy->sendPostedTransNotifications($transaction);
+                         if($inputs['service_id'] == Services::Airtime2Cash){
+                             $message = 'Your airtime order has been received successfully. It takes an average of 3-5 minutes to complete this transaction';
+                             return json_encode(new JsonResponse("00", $message, $transaction));
+                         }
+                         else{
+                             $this->mproxy->handlesServicesAutomation($transaction);
+                             $message = $transaction->sub_name . " request has been submitted successfully!";
+                             return json_encode(new JsonResponse("00", $message, $transaction));
+                         }
+                     }
+                     else
+                         return json_encode(new JsonResponse("-01", "You currently have a pending transaction!"));
                 }
-                else
-                    return json_encode(new JsonResponse("-01", "You currently have a pending transaction!"));
             }
             else
                 return json_encode(new JsonResponse("-01", "Invalid Amount!"));
