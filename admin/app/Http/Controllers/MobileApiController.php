@@ -199,7 +199,7 @@ class MobileApiController extends Controller
         $subProduct = $this->mproxy->getSubProductDetail($inputs['sub_prod_id']);
         if($subProduct->active == 1){
             if($inputs['amount'] > 0){
-                if($inputs['service_id'] == Services::Airtime2Cash && $user->bvn_number != '')
+                if($inputs['service_id'] == Services::Airtime2Cash && $user->bvn_number == '')
                     return json_encode(new JsonResponse("-01", "Account not verified!"));
                 else{
                      $this->mproxy->postTransaction($inputs , $user, $subProduct);
