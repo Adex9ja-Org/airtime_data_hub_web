@@ -220,6 +220,7 @@ class Repository
             'phoneno' => $input['phoneno'],
             'fullname' => $input['fullname'],
             'address' => $input['address'],
+            'ref_code' => $input['ref_code'] ?? '',
             'userRole' => $fromAdmin ? $input['userRole'] : UserRoles::user,
         ];
         $referral = $this->table->getSingleItem('referral_entity', 'ref_code', $input['ref_code'] ?? '');
@@ -227,12 +228,11 @@ class Repository
         return $this->table->insertNewEntry('user_entity', 'email', $data);
     }
 
-    public function updateUser($input, $email, $encodePassword = false)
+    public function updateUser($input, $email, $encodePassword = false, $adminUpdate = false)
     {
         $old_user = $this->getUserByEmail($email);
-        $isVerified = $old_user->bvn_number != null && $old_user->bvn_number != "";
+        $isVerified = $this->isAccountVerified($old_user);
         $password = $input['password'] ?? $old_user->password;
-        $enodedPassword = $encodePassword ? base64_encode($password) : $password;
         $data = [
             'token' => $input['token'] ?? $old_user->token,
             'pin' => $input['pin'] ?? $old_user->pin,
@@ -241,7 +241,8 @@ class Repository
             'doc_type' => $input['doc_type'] ?? $old_user->doc_type,
             'doc_url' => $input['doc_url'] ?? $old_user->doc_url,
             'address' => $input['address'] ?? $old_user->address,
-            'password' => $enodedPassword,
+            'password' => $encodePassword ? base64_encode($password) : $password,
+            'userRole' => $adminUpdate ? $input['userRole'] : $old_user->userRole
         ];
 
 
@@ -389,7 +390,6 @@ class Repository
                 $inputs['channel_name'] = PaymentMethod::Wallet;
                 break;
         }
-
 
         $transaction = [
             'ref' => $inputs['ref'],
@@ -1081,9 +1081,15 @@ class Repository
         return $this->table->deactivate('user_bank_entity', 'acc_no', $acc_no);
     }
 
-    public function activateUserBank($acc_no)
+    public function updateUserBankAccount($acc_no, $inputs)
     {
-        return $this->table->activate('user_bank_entity', 'acc_no', $acc_no);
+        $data = [
+            'active' => ActiveStatus::Active,
+            'email' => $inputs['email'],
+            'bank_code' => $inputs['bank_code'],
+            'acc_name' => $inputs['acc_name'],
+        ];
+        return $this->table->updateTable('user_bank_entity', 'acc_no', $acc_no, $data);
     }
 
     public function saveNewProduct($input, $file)
@@ -1531,7 +1537,7 @@ class Repository
                             'serviceCode' => 'P-ELECT',
                             'disco' => $autoInfo->auto_type,
                             'meterNo' => $transaction->cr_acc,
-                            'type' => strtolower($autoInfo->auto_sub_prod_id),
+                            'type' => $autoInfo->auto_sub_prod_id,
                             'amount' => $transaction->amount,
                             'phonenumber' => $user->phoneno,
                             'request_id' => $transaction->ref
@@ -1737,7 +1743,7 @@ class Repository
                     "contractCode" => config('app.monify_contract_code'),
                     "customerEmail" => $user->email,
                     "customerName" => $user->fullname,
-                    "customerBvn" => $user->bvn_number
+                    "customerBvn" => $user->bvn_number ?? ""
                 ]
             ]);
             $response = json_decode( $result->getBody(), true );
@@ -1786,5 +1792,10 @@ class Repository
             'account_number' => $accountNumber
         ];
         return $this->table->updateTable('user_entity', 'email', $email, $data);
+    }
+
+    public function isAccountVerified($old_user)
+    {
+        return isset($old_user->bvn_number) && $old_user->bvn_number != null && $old_user->bvn_number != "";
     }
 }

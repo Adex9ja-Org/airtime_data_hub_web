@@ -118,7 +118,7 @@ class UserController extends Controller
     public function saveUser(Request $request, $args = null){
         $inputs = $request->input();
         if($args != null)
-            return $this->mproxy->updateUser($inputs, $inputs['email'], true);
+            return $this->mproxy->updateUser($inputs, $inputs['email'], true, true);
         else
             return $this->mproxy->saveNewUser($inputs, true);
     }

@@ -283,33 +283,39 @@ class MobileApiController extends Controller
     public function requestPayout(Request $request){
         $inputs = $request->input();
         $email = $this->mproxy->getEmailFromJwt($request);
-        $pendingPayout = $this->mproxy->getPendingPayout($email);
-        if($pendingPayout == null){
-            $accountBal = $this->mproxy->getWalletBalance($email);
-            if($inputs['amount'] > 0){
-                if($accountBal >= $inputs['amount']){
-                    $inputs['email'] = $email;
-                    $this->mproxy->savePayoutRequest($inputs);
-                    $payoutRequest = $this->mproxy->getPayoutRequestById($inputs['payout_id']);
-                    if($payoutRequest != null){
+        $userDetail = $this->mproxy->getUserByEmail($email);
+        $isVerified = $this->mproxy->isAccountVerified($userDetail);
+        if($isVerified){
+            $pendingPayout = $this->mproxy->getPendingPayout($email);
+            if($pendingPayout == null){
+                $accountBal = $this->mproxy->getWalletBalance($email);
+                if($inputs['amount'] > 0){
+                    if($accountBal >= $inputs['amount']){
+                        $inputs['email'] = $email;
+                        $this->mproxy->savePayoutRequest($inputs);
+                        $payoutRequest = $this->mproxy->getPayoutRequestById($inputs['payout_id']);
+                        if($payoutRequest != null){
 //                        $accountBal = $this->mproxy->getAirtime2CashAvailBal($email);
 //                        if($accountBal >= $inputs['amount']){
 //
 //                        }
-                        $this->mproxy->handlesWithdrawalAutomation($payoutRequest);
-                        return json_encode(new JsonResponse("00", "Withdrawal request of N". number_format($inputs['amount'], 2) . ' has been submitted successfully!', $payoutRequest));
+                            $this->mproxy->handlesWithdrawalAutomation($payoutRequest);
+                            return json_encode(new JsonResponse("00", "Withdrawal request of N". number_format($inputs['amount'], 2) . ' has been submitted successfully!', $payoutRequest));
+                        }
+                        else
+                            return json_encode(new JsonResponse("-01", "Payout Request Fail...Try Again!", null));
                     }
                     else
-                        return json_encode(new JsonResponse("-01", "Payout Request Fail...Try Again!", null));
+                        return json_encode(new JsonResponse('-01', 'Insufficient Balance', null));
                 }
                 else
-                    return json_encode(new JsonResponse('-01', 'Insufficient Balance', null));
+                    return json_encode(new JsonResponse('-01', 'Invalid Amount!', null));
             }
             else
-                return json_encode(new JsonResponse('-01', 'Invalid Amount!', null));
+                return json_encode(new JsonResponse('-01', 'You have a pending payout request'));
         }
         else
-            return json_encode(new JsonResponse('-01', 'You have a pending payout request', null));
+            return json_encode(new JsonResponse('-01', 'Account not verified'));
     }
     public function bankTransfer(Request $request){
         $inputs = $request->input();
@@ -374,8 +380,8 @@ class MobileApiController extends Controller
         }
         else{
             if($bank->active == 0){
-                $this->mproxy->activateUserBank($bank->acc_no);
-                $bank->active = 1;
+                $this->mproxy->updateUserBankAccount($bank->acc_no, $inputs);
+                $bank->active = strval(ActiveStatus::Active);
                 $code = "00"; $message = "Added Successfully!";
             }
             else{
