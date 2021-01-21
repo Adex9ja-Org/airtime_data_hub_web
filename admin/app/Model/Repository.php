@@ -900,7 +900,7 @@ class Repository
 
     public function getReferralList()
     {
-        return $this->table->getItemList('referral_entity', 'ref_code', true);
+        return DB::select("SELECT R.*, U.fullname, (SELECT sum(case when U2.userRole = ? THEN 1 ELSE 0 END) from user_entity as U2 where U2.ref_code = R.ref_code) as earned, (SELECT count(*) from user_entity as U3 where U3.ref_code = R.ref_code) as referred from referral_entity as R inner join user_entity as U on R.email = U.email", array(UserRoles::agent));
     }
 
     public function getReferralEarnings($ref_code)
@@ -1462,7 +1462,7 @@ class Repository
                             $this->airtimeAutomation($transaction, $autoInfo);
                             break;
                         case Services::Bill_Payment:
-                            return $this->billPaymentAutomation($transaction, $autoInfo);
+                            $this->billPaymentAutomation($transaction, $autoInfo);
                             break;
                     }
                 }
@@ -1538,7 +1538,7 @@ class Repository
                             'disco' => $autoInfo->auto_type,
                             'meterNo' => $transaction->cr_acc,
                             'type' => $autoInfo->auto_sub_prod_id,
-                            'amount' => $transaction->amount,
+                            'amount' => (int)$transaction->amount,
                             'phonenumber' => $user->phoneno,
                             'request_id' => $transaction->ref
                         ];
@@ -1568,7 +1568,7 @@ class Repository
                             'serviceCode' => 'P-Internet',
                             'account' => $transaction->cr_acc,
                             'request_id' => $transaction->ref,
-                            'amount' => $transaction->amount,
+                            'amount' => (int)$transaction->amount,
                             'pinNo' => $autoInfo->auto_sub_prod_id,
                             'type' => $autoInfo->auto_type
                         ];
@@ -1579,7 +1579,7 @@ class Repository
                             'serviceCode' => $autoInfo->auto_prod_id,
                             'account' => $transaction->cr_acc,
                             'request_id' => $transaction->ref,
-                            'amount' => $transaction->amount,
+                            'amount' => (int)$transaction->amount,
                             'pinNo' => $autoInfo->auto_sub_prod_id,
                             'type' => $autoInfo->auto_type
                         ];
@@ -1590,14 +1590,11 @@ class Repository
                     $token = isset($response['pin']) && sizeof($response['pin']) > 0 ? $response['pin'][0]['pin'] : "";
                     $serial = isset($response['serial']) && sizeof($response['pin']) > 0 ? $response['pin'][0]['serial'] : "";
                 }
-                $this->updateRingoAutoResponse($response['status'], $response['message'], $transaction, $token ?? "", $response['transref'] ?? "", $serial ?? "");
-                return $json ?? "Request could not be prepared";
+
+                $this->updateRingoAutoResponse($response['status'], $response['message'], $transaction, $token ?? "", $response['transref'] ?? "", $serial ?? "", $json ?? []);
             }
-            else
-                return "Not available";
         }catch (\GuzzleHttp\Exception\RequestException $exception){
             $this->updateRingoAutoResponse("404", $exception->getMessage(), $transaction);
-            return $exception->getMessage();
         }
     }
 
@@ -1623,13 +1620,13 @@ class Repository
             $this->updateAutoProcessing($transaction->ref,  $response['msg'], $response['status']);
     }
 
-    private function updateRingoAutoResponse($status, $message, $transaction, $token = '', $reference = '', $serial = '')
+    private function updateRingoAutoResponse($status, $message, $transaction, $token = '', $reference = '', $serial = '', $raw = [])
     {
         if($status == "200")
             $this->updateTransactionStatus($transaction->ref, RequestStatus::Approved, $transaction->ref, null, $token, $serial);
         else
             $this->updateTransactionStatus($transaction->ref, RequestStatus::Failed, $transaction->ref);
-        $this->updateAutoProcessing($transaction->ref,  $message, $status, $reference);
+        $this->updateAutoProcessing($transaction->ref,  $message, $status, $reference, json_encode($raw));
 
     }
 
@@ -1695,10 +1692,10 @@ class Repository
         return $this->table->getSingleItemWithWhere('auto_processing_entity', 'id', $inputs);
     }
 
-    private function updateAutoProcessing($trans_ref, $msg, $status, $reference = '')
+    private function updateAutoProcessing($trans_ref, $msg, $status, $reference = '', $raw = '')
     {
         $v_status = $status ? 'success' : 'fail';
-        DB::update("UPDATE auto_processing_entity set msg = ?, status = ?, reference = ? WHERE ref = ?", array($msg, $v_status, $reference, $trans_ref));
+        DB::update("UPDATE auto_processing_entity set msg = ?, status = ?, reference = ?, raw_req = ? WHERE ref = ?", array($msg, $v_status, $reference, $raw, $trans_ref));
     }
 
     public function getAddonByCode($addon_code)

@@ -197,7 +197,7 @@ class MobileApiController extends Controller
         $email = $this->mproxy->getEmailFromJwt($request);
         $user = $this->mproxy->getUserByEmail($email);
         $subProduct = $this->mproxy->getSubProductDetail($inputs['sub_prod_id']);
-        if($subProduct->active == 1){
+        if($subProduct->active == ActiveStatus::Active){
             if($inputs['amount'] > 0){
                 if($inputs['service_id'] == Services::Airtime2Cash && $user->bvn_number == '')
                     return json_encode(new JsonResponse("-01", "Account not verified!"));
@@ -303,13 +303,13 @@ class MobileApiController extends Controller
                             return json_encode(new JsonResponse("00", "Withdrawal request of N". number_format($inputs['amount'], 2) . ' has been submitted successfully!', $payoutRequest));
                         }
                         else
-                            return json_encode(new JsonResponse("-01", "Payout Request Fail...Try Again!", null));
+                            return json_encode(new JsonResponse("-01", "Payout Request Fail...Try Again!"));
                     }
                     else
-                        return json_encode(new JsonResponse('-01', 'Insufficient Balance', null));
+                        return json_encode(new JsonResponse('-01', 'Insufficient Balance'));
                 }
                 else
-                    return json_encode(new JsonResponse('-01', 'Invalid Amount!', null));
+                    return json_encode(new JsonResponse('-01', 'Invalid Amount!'));
             }
             else
                 return json_encode(new JsonResponse('-01', 'You have a pending payout request'));
@@ -338,8 +338,8 @@ class MobileApiController extends Controller
     public function fundTransfer(Request $request){
         $inputs = $request->input();
         $inputs['sender_email'] = $this->mproxy->getEmailFromJwt($request);
-        $accountBal = $this->mproxy->getWalletBalance($inputs['sender_email']);
         if($inputs['amount'] > 0){
+            $accountBal = $this->mproxy->getWalletBalance($inputs['sender_email']);
             if($accountBal >= $inputs['amount']){
                 $this->mproxy->transferFund($inputs);
                 $walletTrans = $this->mproxy->getWalletTransByPayRef($inputs['payment_ref']);
@@ -348,10 +348,10 @@ class MobileApiController extends Controller
                     return json_encode(new JsonResponse("00", "Fund transfer of N". $inputs['amount']. ' is successful!', $walletTrans));
                 }
                 else
-                    return json_encode(new JsonResponse('-01', 'Error occurs during transfer', null));
+                    return json_encode(new JsonResponse('-01', 'Error occurs during transfer'));
             }
             else
-                return json_encode(new JsonResponse('-01', 'Insufficient Fund', null));
+                return json_encode(new JsonResponse('-01', 'Insufficient Fund'));
         }
         else
             return json_encode(new JsonResponse('-01', 'Invalid Amount'));

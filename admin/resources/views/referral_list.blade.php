@@ -15,6 +15,9 @@
                             <tr>
                                 <th>#</th>
                                 <th>Referral Code</th>
+                                <th>Full Name</th>
+                                <th>Referrals</th>
+                                <th>Earned</th>
                                 <th>Payment Reference</th>
                                 <th>Amount</th>
                                 <th>Action</th>
@@ -26,6 +29,9 @@
                                 <tr>
                                     <td>{{ ++$count }}</td>
                                     <td>{{ $item->ref_code }}</td>
+                                    <td>{{ $item->fullname }}</td>
+                                    <td>{{ $item->referred }}</td>
+                                    <td>{{ $item->earned ?? 0 }}</td>
                                     <td>{{ $item->reference }}</td>
                                     <td>{{ number_format($item->amount, 2) }}</td>
                                     <td>
