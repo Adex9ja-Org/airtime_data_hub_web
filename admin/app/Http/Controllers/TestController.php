@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Model\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 
 class TestController extends Controller
 {
     public function apiTest(Request $request){
-        $user = $this->mproxy->getUserByEmail('ainaoluwatosint@gmail.com');
-        return $this->mproxy->reserveAccount($user);
+//        $user = $this->mproxy->getUserByEmail('ainaoluwatosint@gmail.com');
+//        $response = $this->mproxy->reQueryReservedAccount($user);
+        $response = null;
+        return json_encode( new JsonResponse('00', 'successful', $response));
     }
 
     public function verifyPayment(Request $request, $payment_ref){

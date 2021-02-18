@@ -235,7 +235,7 @@
             @yield('content')
         </div>
         <footer class="footer d-flex flex-column flex-md-row align-items-center justify-content-between">
-            <p class="text-muted text-center text-md-left">Copyright © 2020 . All rights reserved</p>
+            <p class="text-muted text-center text-md-left">Copyright © 2021 . All rights reserved</p>
             <p class="text-muted text-center text-md-left mb-0 d-none d-md-block">Powered by: <a target="_blank" href="http://codefixbug.com">CodeFixBug</a></p>
         </footer>
     </div>

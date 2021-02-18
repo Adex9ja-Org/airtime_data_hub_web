@@ -208,7 +208,9 @@ class Repository
 
     public function getUserByEmail($email)
     {
-        return $this->table->getSingleItem('user_entity', 'email', $email);
+        $user = $this->table->getSingleItem('user_entity', 'email', $email);
+        $user->bank_name = 'Sterling Bank Plc';
+        return $user ;
     }
 
     public function saveNewUser($input, bool $fromAdmin = false)
@@ -634,13 +636,24 @@ class Repository
     {
         $inputs = json_decode($request->getContent(), true);
         if($request->getUser() == config('app.monify_username') && $request->getPassword() == config('app.monify_password')){
+//            $data = [
+//                'trans_ref' => $inputs['settlementReference'],
+//                'amount' => $inputs['amount'],
+//                'acct_num' => $inputs['destinationAccountNumber'],
+//                'acct_name' => $inputs['destinationAccountName'],
+//                'bank_code' => $inputs['destinationBankName'],
+//                'trans_count' => $inputs['transactionsCount'],
+//            ];
+//
+
+            $this->table->insertNewEntry('settlement_log_entity', 'id', ['content' => json_encode($inputs)]);
             $data = [
-                'trans_ref' => $inputs['settlementReference'],
-                'amount' => $inputs['amount'],
-                'acct_num' => $inputs['destinationAccountNumber'],
-                'acct_name' => $inputs['destinationAccountName'],
-                'bank_code' => $inputs['destinationBankName'],
-                'trans_count' => $inputs['transactionsCount'],
+                'trans_ref' => $inputs['initiationTranRef'],
+                'amount' => $inputs['settledAmount'],
+                'acct_num' => $inputs['accountNumber'],
+                'acct_name' => $inputs['destinationAccountName'] ?? "Nurenta Global Concept Limited",
+                'bank_code' => $inputs['destinationBankName'] ?? "058",
+                'trans_count' => $inputs['transactionsCount'] ?? -1,
             ];
             $this->table->insertNewEntry('settlement_notification_entity', 'trans_ref', $data);
             return new JsonResponse("00", "Notified Successfully");
@@ -692,10 +705,11 @@ class Repository
             ]);
             $response = json_decode( $result->getBody(), true );
             if($response['requestSuccessful']){
-                $accountNumber = $response['responseBody']['accountNumber'];
-                $this->updateProvidusAcct($accountNumber, $user->email);
+                $this->updateProvidusAcct($response, $user->email);
             }
+            return $response;
         }catch (\GuzzleHttp\Exception\RequestException $exception){
+            return null;
         }
     }
 
@@ -1746,7 +1760,7 @@ class Repository
             $response = json_decode( $result->getBody(), true );
             if($response['requestSuccessful']){
                 $accountNumber = $response['responseBody']['accountNumber'];
-                $this->updateProvidusAcct($accountNumber, $user->email);
+                $this->updateProvidusAcct($response, $user->email);
                 return $accountNumber;
             }
             else
@@ -1783,10 +1797,13 @@ class Repository
         }
     }
 
-    private function updateProvidusAcct($accountNumber, $email)
+    private function updateProvidusAcct($response, $email)
     {
+        $accountNumber = $response['responseBody']['accountNumber'];
+        $bankCode = $response['responseBody']['bankCode'];
         $data = [
-            'account_number' => $accountNumber
+            'account_number' => $accountNumber,
+            'bank_code' => $bankCode
         ];
         return $this->table->updateTable('user_entity', 'email', $email, $data);
     }

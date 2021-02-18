@@ -217,7 +217,7 @@ class MobileApiController extends Controller
                          }
                      }
                      else
-                         return json_encode(new JsonResponse("-01", "You currently have a pending transaction!"));
+                          return json_encode(new JsonResponse("-01", "Error processing request. Please try again!"));
                 }
             }
             else

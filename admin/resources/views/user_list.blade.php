@@ -24,15 +24,15 @@
                             </thead>
                             <tbody>
                                 @php($count = 0)
-                                @foreach($data as $farmer)
+                                @foreach($data as $user)
                                 <tr>
                                     <td>{{ ++$count }}</td>
-                                    <td>{{ substr($farmer->fullname, 0, 50) }}</td>
-                                    <td>{{ substr($farmer->email, 0, 50) }}</td>
-                                    <td>{{ substr($farmer->phoneno, 0, 15) }}</td>
-                                    <td>{{ substr($farmer->address, 0, 50) }}</td>
+                                    <td>{{ substr($user->fullname, 0, 50) }}</td>
+                                    <td>{{ substr($user->email, 0, 50) }}</td>
+                                    <td>{{ substr($user->phoneno, 0, 15) }}</td>
+                                    <td>{{ substr($user->address, 0, 50) }}</td>
                                     <td>
-                                        @if($farmer->active == 1)
+                                        @if($user->active == 1)
                                             <div class="badge badge-secondary">Active</div>
                                         @else
                                             <div class="badge badge-danger">Banned</div>
@@ -44,14 +44,18 @@
                                                 Options
                                             </button>
                                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                                <a class="dropdown-item" href="/users/list/detail/{{ base64_encode($farmer->email) }}"><i data-feather="eye" class="icon-sm mr-sm-2"></i>Detail</a>
+                                                <a class="dropdown-item" href="/users/list/detail/{{ base64_encode($user->email) }}"><i data-feather="eye" class="icon-sm mr-sm-2"></i>Detail</a>
                                                 <div class="dropdown-divider"></div>
-                                                <a class="dropdown-item" href="/users/update/{{ base64_encode($farmer->email) }}"><i data-feather="edit" class="icon-sm mr-sm-2"></i>Update</a>
+                                                <a class="dropdown-item" href="/users/update/{{ base64_encode($user->email) }}"><i data-feather="edit" class="icon-sm mr-sm-2"></i>Update</a>
                                                 <div class="dropdown-divider"></div>
-                                                @if($farmer->active == 1)
-                                                    <a class="dropdown-item" href="/users/deactivate/{{ base64_encode($farmer->email) }}"><i data-feather="delete" class="icon-sm mr-sm-2"></i>Ban User</a>
+                                                @if($user->active == 1)
+                                                    <a class="dropdown-item" href="/users/deactivate/{{ base64_encode($user->email) }}"><i data-feather="delete" class="icon-sm mr-sm-2"></i>Ban User</a>
                                                 @else
-                                                    <a class="dropdown-item" href="/users/activate/{{ base64_encode($farmer->email) }}"><i data-feather="check" class="icon-sm mr-sm-2"></i>Activate</a>
+                                                    <a class="dropdown-item" href="/users/activate/{{ base64_encode($user->email) }}"><i data-feather="check" class="icon-sm mr-sm-2"></i>Activate</a>
+                                                @endif
+                                                @if($user->is_email_verified == 0)
+                                                    <div class="dropdown-divider"></div>
+                                                    <a class="dropdown-item" href="/users/send/email/verification/{{ base64_encode($user->email) }}"><i data-feather="mail" class="icon-sm mr-sm-2"></i>Resend Verification</a>
                                                 @endif
                                             </div>
                                         </div>

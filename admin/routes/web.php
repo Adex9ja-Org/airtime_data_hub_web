@@ -37,6 +37,7 @@ Route::get('/users/privileges/{user_role}', 'UserController@userRolesPages');
 Route::post('/users/privileges/{user_role}', 'UserController@userRolesPages');
 Route::get('/users/list/detail/{email}', 'UserController@userDetail');
 Route::get('/user/verify/email/{email}', 'UserController@verifyEmailAddress');
+Route::get('/users/send/email/verification/{email}', 'UserController@resendVerificationEmail');
 
 
 

@@ -141,5 +141,15 @@ class UserController extends Controller
         else
             return view("error", ['code' => '600', "msg" => "Verification Denied", "reason" => "Your email account could not be verified at the moment"]);
     }
+    public function resendVerificationEmail(Request $request, $email){
+        $email = base64_decode($email);
+        $user = $this->mproxy->getUserByEmail($email);
+        if($user != null){
+            $this->mproxy->sendRegMail($user);
+            return back()->with('msg', $this->prepareMessage(true, "Verification mail sent!"));
+        }
+        else
+            return view("error", ['code' => '600', "msg" => "Verification Denied", "reason" => "Your email account could not be verified at the moment"]);
+    }
 
 }
