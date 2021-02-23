@@ -195,29 +195,31 @@ class MobileApiController extends Controller
     public function postTransaction(Request $request){
         $inputs = $request->input();
         $email = $this->mproxy->getEmailFromJwt($request);
+
         $user = $this->mproxy->getUserByEmail($email);
         $subProduct = $this->mproxy->getSubProductDetail($inputs['sub_prod_id']);
         if($subProduct->active == ActiveStatus::Active){
             if($inputs['amount'] > 0){
-                if($inputs['service_id'] == Services::Airtime2Cash && $user->bvn_number == '')
+                if($inputs['service_id'] == Services::Airtime2Cash &&  empty($user->bvn_number))
                     return json_encode(new JsonResponse("-01", "Account not verified!"));
                 else{
-                     $this->mproxy->postTransaction($inputs , $user, $subProduct);
-                     $transaction = $this->mproxy->getTransactionDetailById($inputs['ref']);
-                     if($transaction != null){
-                         $this->mproxy->sendPostedTransNotifications($transaction);
-                         if($inputs['service_id'] == Services::Airtime2Cash){
-                             $message = 'Your airtime order has been received successfully. It takes an average of 3-5 minutes to complete this transaction';
-                             return json_encode(new JsonResponse("00", $message, $transaction));
-                         }
-                         else{
-                             $this->mproxy->handlesServicesAutomation($transaction);
-                             $message = $transaction->sub_name . " request has been submitted successfully!";
-                             return json_encode(new JsonResponse("00", $message, $transaction));
-                         }
-                     }
-                     else
-                          return json_encode(new JsonResponse("-01", "Error processing request. Please try again!"));
+                    $transaction = $this->mproxy->postTransaction($inputs , $user, $subProduct);
+                    if($transaction != null){
+                        $transaction = $this->mproxy->getLastTransaction($email);
+                        $this->mproxy->sendPostedTransNotifications($transaction);
+                        if($inputs['service_id'] == Services::Airtime2Cash){
+                            $message = 'Your airtime order has been received successfully. It takes an average of 3-5 minutes to complete this transaction';
+                            return json_encode(new JsonResponse("00", $message, $transaction));
+                        }
+                        else{
+                            $this->mproxy->handlesServicesAutomation($transaction);
+                            $message = $transaction->sub_name . " request has been submitted successfully!";
+                            return json_encode(new JsonResponse("00", $message, $transaction));
+                        }
+                    }
+                    else
+                        return json_encode(new JsonResponse("-01", "Error processing request. Please try again!"));
+
                 }
             }
             else
@@ -225,7 +227,6 @@ class MobileApiController extends Controller
         }
         else
             return json_encode(new JsonResponse("-01", "Product is currently unavailable!"));
-
 
     }
     public function postWalletTransaction(Request $request){
