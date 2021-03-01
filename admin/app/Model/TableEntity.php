@@ -12,6 +12,9 @@ class TableEntity extends Model
     public $incrementing = false;
     private $image_path = 'images/upload/';
 
+    protected $guarded = [];
+
+
     private function prepareMessage(bool $success, $msg){
         $msgTemplate = "<div class='row'> <div class='col-md-12 alert alert-success alert-dismissible' role='alert'><a href='#' class='close' data-dismiss='alert' aria-label='close'>×</a><center>$msg</center></div></div>";
         $errTemplate = "<div class='row'> <div class='col-md-12 alert alert-warning alert-dismissible' role='alert'><a href='#' class='close' data-dismiss='alert' aria-label='close'>×</a><center>$msg</center></div></div>";
@@ -85,6 +88,19 @@ class TableEntity extends Model
         } catch (\Throwable $e) {
             if($showMessage)
                 return back()->with('msg', $this->prepareMessage(false, 'Error Occurs: '. $e->getMessage()));
+        }
+    }
+
+    public function createRecord($table, $primaryKey, $inputs)
+    {
+        try {
+            $this->setTablePrimary($table, $primaryKey);
+            unset($inputs['_token']);
+            $inputs['created_at'] = $this->getCurrentDate();
+            $inputs['updated_at'] = $this->getCurrentDate();
+            return $this->create($inputs);
+        } catch (\Throwable $e) {
+            return $e->getMessage();
         }
     }
 

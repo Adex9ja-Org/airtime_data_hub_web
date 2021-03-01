@@ -385,7 +385,7 @@ class Repository
                 $inputs['channel_name'] = PaymentMethod::Bank;
                 break;
             default:
-                if($addon_code != '') $addon = $this->getAddonByCode($addon_code);
+                if(!empty($addon_code)) $addon = $this->getAddonByCode($addon_code);
                 $user_amount = $user->userRole == UserRoles::agent ? $subProduct->sub_res_price : $subProduct->sub_price;
                 $amount = $user_amount == 0 ? $inputs['amount'] : ($user_amount * $subProduct->period);
                 $amount = isset($addon) ? ($amount + $addon['addon_price']) : $amount;
@@ -394,7 +394,6 @@ class Repository
         }
 
         $transaction = [
-            'ref' => $inputs['ref'],
             'email' => $user->email,
             'sub_prod_id' => $subProduct->sub_prod_id,
             'cr_acc' => $inputs['cr_acc'],
@@ -413,7 +412,7 @@ class Repository
             'channel_name' => $inputs['channel_name'],
             'platform' => $inputs['platform'] ?? 'Android',
         ];
-        return $this->table->insertNewEntry('voucher_entity', 'ref', $transaction, null, null, false);
+        return $this->table->createRecord('voucher_entity', 'ref', $transaction);
     }
 
     public function getProductsByServiceId($DATA_SERVICE)
@@ -485,10 +484,15 @@ class Repository
 
     public function sendPostedTransNotifications($transaction)
     {
-        $tokens = $this->getAdminTokens();
-        $message = "You have a new request from : " . $transaction->email;
-        $this->sendPushNotification("03", 'New Request',  $message  , $tokens, null, $transaction);
-        $this->sendReceiptByMail($transaction, "Transaction Receipt", array($transaction->email));
+        try {
+            $tokens = $this->getAdminTokens();
+            $message = "You have a new request from : " . $transaction->email;
+            $this->sendPushNotification("03", 'New Request',  $message  , $tokens, null, $transaction);
+            $this->sendReceiptByMail($transaction, "Transaction Receipt", array($transaction->email));
+            return  'Notification sent';
+        }catch (\Exception $e){
+            return $e->getMessage();
+        }
     }
 
     private function sendReceiptByMail($transaction, $subject, array $emails)
@@ -717,6 +721,11 @@ class Repository
     public function logTransaction($inputs)
     {
         $this->table->insertNewEntry('settlement_log_entity', 'id', ['content' => json_encode($inputs)]);
+    }
+
+    public function getLastTransaction($email)
+    {
+        return DB::selectOne("SELECT U.fullname, V.*, S.sub_name, P.product_name, P.product_icon, P.product_description, C.per_charges from voucher_entity as V INNER join user_entity as U on V.email = U.email INNER join sub_product_entity as S on V.sub_prod_id = S.sub_prod_id INNER join product_entity as P on S.product_id = P.product_id INNER join conversion_rate_entity as C on S.conversion_id = C.conversion_id where U.email = ? ORDER by V.ref DESC LIMIT 1", array($email));
     }
 
 
@@ -1702,20 +1711,20 @@ class Repository
             'ref' => $transaction->ref,
             'created_at' => $transaction->created_at
         ];
-        $this->table->insertNewEntry('auto_processing_entity', 'id', $input);
+        $this->table->insertNewEntry('log_entity', 'ref', $input);
     }
 
     private function getAutoProcessingLog($ref)
     {
         $this->table = new TableEntity();
         $inputs = [['ref', '=', $ref]];
-        return $this->table->getSingleItemWithWhere('auto_processing_entity', 'id', $inputs);
+        return $this->table->getSingleItemWithWhere('log_entity', 'ref', $inputs);
     }
 
     private function updateAutoProcessing($trans_ref, $msg, $status, $reference = '', $raw = '')
     {
         $v_status = $status ? 'success' : 'fail';
-        DB::update("UPDATE auto_processing_entity set msg = ?, status = ?, reference = ?, raw_req = ? WHERE ref = ?", array($msg, $v_status, $reference, $raw, $trans_ref));
+        DB::update("UPDATE log_entity set msg = ?, status = ?, reference = ?, raw_req = ? WHERE ref = ?", array($msg, $v_status, $reference, $raw, $trans_ref));
     }
 
     public function getAddonByCode($addon_code)
