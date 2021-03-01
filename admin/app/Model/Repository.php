@@ -640,6 +640,8 @@ class Repository
     public function monifySettlementNotification(Request $request)
     {
         $inputs = json_decode($request->getContent(), true);
+        $this->table->insertNewEntry('settlement_log_entity', 'id', ['content' => json_encode($inputs)]);
+
         if($request->getUser() == config('app.monify_username') && $request->getPassword() == config('app.monify_password')){
 //            $data = [
 //                'trans_ref' => $inputs['settlementReference'],
@@ -651,7 +653,6 @@ class Repository
 //            ];
 //
 
-            $this->table->insertNewEntry('settlement_log_entity', 'id', ['content' => json_encode($inputs)]);
             $data = [
                 'trans_ref' => $inputs['initiationTranRef'],
                 'amount' => $inputs['settledAmount'],
@@ -718,10 +719,6 @@ class Repository
         }
     }
 
-    public function logTransaction($inputs)
-    {
-        $this->table->insertNewEntry('settlement_log_entity', 'id', ['content' => json_encode($inputs)]);
-    }
 
     public function getLastTransaction($email)
     {
