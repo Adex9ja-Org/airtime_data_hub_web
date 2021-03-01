@@ -194,6 +194,7 @@ class MobileApiController extends Controller
     }
     public function postTransaction(Request $request){
         $inputs = $request->input();
+        $this->mproxy->logTransaction($inputs);
         $email = $this->mproxy->getEmailFromJwt($request);
         $user = $this->mproxy->getUserByEmail($email);
         $subProduct = $this->mproxy->getSubProductDetail($inputs['sub_prod_id']);

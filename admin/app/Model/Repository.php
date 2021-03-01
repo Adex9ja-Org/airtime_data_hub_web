@@ -405,12 +405,13 @@ class Repository
             'acc_no' => $inputs['acc_no'] ?? "",
             'narration' => $inputs['narration'] ?? "",
             'discount_code' => $inputs['discount_code'] ?? "",
-            'mac_address' => $inputs['mac_address'],
-            'ip_address' => $inputs['ip_address'],
-            'latitude' => $inputs['latitude'],
-            'longitude' => $inputs['longitude'],
+            'mac_address' => $inputs['mac_address'] ?? '',
+            'ip_address' => $inputs['ip_address'] ?? '',
+            'latitude' => $inputs['latitude'] ?? 0.0,
+            'longitude' => $inputs['longitude'] ?? 0.0,
             'addon_code' => $addon_code,
             'channel_name' => $inputs['channel_name'],
+            'platform' => $inputs['platform'] ?? 'Android',
         ];
         return $this->table->insertNewEntry('voucher_entity', 'ref', $transaction, null, null, false);
     }
@@ -711,6 +712,11 @@ class Repository
         }catch (\GuzzleHttp\Exception\RequestException $exception){
             return null;
         }
+    }
+
+    public function logTransaction($inputs)
+    {
+        $this->table->insertNewEntry('settlement_log_entity', 'id', ['content' => json_encode($inputs)]);
     }
 
 
