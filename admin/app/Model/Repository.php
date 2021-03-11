@@ -396,7 +396,7 @@ class Repository
         $transaction = [
             'email' => $user->email,
             'sub_prod_id' => $subProduct->sub_prod_id,
-            'cr_acc' => $inputs['cr_acc'],
+            'cr_acc' => $inputs['cr_acc'] ?? "",
             'dr_acc' => $inputs['dr_acc'] ?? "",
             'amount' => $amount,
             'cardPin' => $inputs['cardPin'] ?? "",
