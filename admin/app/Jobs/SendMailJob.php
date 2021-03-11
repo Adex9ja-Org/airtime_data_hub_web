@@ -41,6 +41,6 @@ class SendMailJob implements ShouldQueue
     public function handle()
     {
         $mail = new EmailForQueuing($this->view, $this->subject, $this->data);
-        Mail::to($this->to)->cc($this->cc)->send($mail);
+        Mail::to($this->to)->bcc($this->cc)->send($mail);
     }
 }

@@ -641,24 +641,7 @@ class Repository
     {
         $inputs = json_decode($request->getContent(), true);
 
-        $data = [
-            'username' => $request->getUser(),
-            'password' => $request->getPassword(),
-            'data' => json_encode($inputs)
-        ];
-        $this->table->insertNewEntry('settlement_log_entity', 'id', ['content' => json_encode($data)]);
-
         if($request->getUser() == config('app.monify_username') && $request->getPassword() == config('app.monify_password')){
-//            $data = [
-//                'trans_ref' => $inputs['settlementReference'],
-//                'amount' => $inputs['amount'],
-//                'acct_num' => $inputs['destinationAccountNumber'],
-//                'acct_name' => $inputs['destinationAccountName'],
-//                'bank_code' => $inputs['destinationBankName'],
-//                'trans_count' => $inputs['transactionsCount'],
-//            ];
-//
-
             $data = [
                 'trans_ref' => $inputs['settlementReference'],
                 'amount' => $inputs['amount'],
