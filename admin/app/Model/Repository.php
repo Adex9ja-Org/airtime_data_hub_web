@@ -649,6 +649,16 @@ class Repository
         $this->table->insertNewEntry('settlement_log_entity', 'id', ['content' => json_encode($data)]);
 
         if($request->getUser() == config('app.monify_username') && $request->getPassword() == config('app.monify_password')){
+//            $data = [
+//                'trans_ref' => $inputs['settlementReference'],
+//                'amount' => $inputs['amount'],
+//                'acct_num' => $inputs['destinationAccountNumber'],
+//                'acct_name' => $inputs['destinationAccountName'],
+//                'bank_code' => $inputs['destinationBankName'],
+//                'trans_count' => $inputs['transactionsCount'],
+//            ];
+//
+
             $data = [
                 'trans_ref' => $inputs['settlementReference'],
                 'amount' => $inputs['amount'],
@@ -688,6 +698,11 @@ class Repository
     public function filterPayments($inputs)
     {
         return DB::select("SELECT W.*, U.fullname FROM wallet_entity as W INNER JOIN user_entity as U on W.email = U.email WHERE W.channel_name = ? and W.status = ? and date(W.created_at) BETWEEN ? and ? order by W.created_at desc", array_values($inputs));
+    }
+
+    public function filterPayouts($inputs)
+    {
+        return DB::select("SELECT W.*, U.fullname FROM wallet_entity as W INNER JOIN user_entity as U on W.email = U.email WHERE W.narration = 'Payout / Withdrawal' and W.status = ? and date(W.created_at) BETWEEN ? and ? order by W.created_at desc", array_values($inputs));
     }
 
     public function getAirtime2CashAvailBal($email)

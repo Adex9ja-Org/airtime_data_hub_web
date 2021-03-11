@@ -93,10 +93,17 @@ class WalletController extends Controller
     }
 
     public function filterWalletTransaction(Request $request){
+        $payout = 'Payout / Withdrawal';
         $paymentMethods = $this->mproxy->getPaymentChannels();
+        $paymentMethods[] = (object)[ 'channel_name' => $payout ];
         $inputs = $request->input();
         if($inputs != null){
-            $transactions = $this->mproxy->filterPayments($inputs);
+            if($inputs['id'] != $payout)
+                $transactions = $this->mproxy->filterPayments($inputs);
+            else{
+                unset($inputs['id']);
+                $transactions = $this->mproxy->filterPayouts($inputs);
+            }
         }
         return view('wallet_transaction_fliter', ['paymentMethods' => $paymentMethods, 'data' => $transactions ?? null]);
     }
