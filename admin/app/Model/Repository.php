@@ -209,7 +209,7 @@ class Repository
     public function getUserByEmail($email)
     {
         $user = $this->table->getSingleItem('user_entity', 'email', $email);
-        $user->bank_name = 'Sterling Bank Plc';
+        $user->virtual_bank_name = 'Sterling Bank Plc';
         return $user ;
     }
 
@@ -640,16 +640,32 @@ class Repository
     public function monifySettlementNotification(Request $request)
     {
         $inputs = json_decode($request->getContent(), true);
-        $this->table->insertNewEntry('settlement_log_entity', 'id', ['content' => json_encode($inputs)]);
+
+        $data = [
+            'username' => $request->getUser(),
+            'password' => $request->getPassword(),
+            'data' => json_encode($inputs)
+        ];
+        $this->table->insertNewEntry('settlement_log_entity', 'id', ['content' => json_encode($data)]);
 
         if($request->getUser() == config('app.monify_username') && $request->getPassword() == config('app.monify_password')){
+//            $data = [
+//                'trans_ref' => $inputs['settlementReference'],
+//                'amount' => $inputs['amount'],
+//                'acct_num' => $inputs['destinationAccountNumber'],
+//                'acct_name' => $inputs['destinationAccountName'],
+//                'bank_code' => $inputs['destinationBankName'],
+//                'trans_count' => $inputs['transactionsCount'],
+//            ];
+//
+
             $data = [
-                'trans_ref' => $inputs['initiationTranRef'],
-                'amount' => $inputs['settledAmount'],
-                'acct_num' => $inputs['accountNumber'],
-                'acct_name' => $inputs['destinationAccountName'] ?? "Nurenta Global Concept Limited",
-                'bank_code' => $inputs['destinationBankName'] ?? "058",
-                'trans_count' => $inputs['transactionsCount'] ?? -1,
+                'trans_ref' => $inputs['settlementReference'],
+                'amount' => $inputs['amount'],
+                'acct_num' => $inputs['destinationAccountNumber'],
+                'acct_name' => $inputs['destinationAccountName'],
+                'bank_code' => $inputs['destinationBankName'],
+                'trans_count' => $inputs['transactionsCount'],
             ];
             $this->table->insertNewEntry('settlement_notification_entity', 'trans_ref', $data);
             return new JsonResponse("00", "Notified Successfully");
