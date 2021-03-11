@@ -209,7 +209,7 @@ class Repository
     public function getUserByEmail($email)
     {
         $user = $this->table->getSingleItem('user_entity', 'email', $email);
-        $user->bank_name = 'Sterling Bank Plc';
+        $user->virtual_bank_name = 'Sterling Bank Plc';
         return $user ;
     }
 
