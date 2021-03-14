@@ -62,6 +62,12 @@
                     <td>{{ $trans->cardSerialNo }}</td>
                 </tr>
             @endif
+            @if($trans->unit)
+                <tr>
+                    <td>Unit</td>
+                    <td>{{ $trans->unit }}</td>
+                </tr>
+            @endif
 
             <tr>
                 <td>Payment Channel</td>

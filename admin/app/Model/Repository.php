@@ -208,9 +208,7 @@ class Repository
 
     public function getUserByEmail($email)
     {
-        $user = $this->table->getSingleItem('user_entity', 'email', $email);
-        $user->virtual_bank_name = 'Sterling Bank Plc';
-        return $user ;
+        return $this->table->getSingleItem('user_entity', 'email', $email);
     }
 
     public function saveNewUser($input, bool $fromAdmin = false)
@@ -302,11 +300,11 @@ class Repository
         return DB::select("SELECT count(channel_name) as value, channel_name as label from voucher_entity GROUP by channel_name");
     }
 
-    public function updateTransactionStatus($arg, $status, $auto_ref = '', $approval_officer = '', $token = '', $serial = '')
+    public function updateTransactionStatus($arg, $status, $auto_ref = '', $approval_officer = '', $token = '', $serial = '', $unit = '')
     {
         if($status == RequestStatus::Approved){
-            $params  = [$status, $auto_ref, $approval_officer, $token, $serial, $arg];
-            DB::update("update voucher_entity set approvalStatus = ?, auto_ref = ?, approval_officer = ?, cardPin = ?, cardSerialNo = ? where ref = ?", $params );
+            $params  = [$status, $auto_ref, $approval_officer, $token, $serial, $unit, $arg];
+            DB::update("update voucher_entity set approvalStatus = ?, auto_ref = ?, approval_officer = ?, cardPin = ?, cardSerialNo = ?, unit = ? where ref = ?", $params );
             $transaction = $this->getTransactionDetailById($arg);
             $user = $this->getUserByEmail($transaction->email);
             $message = "Ref: ". $transaction->ref . " - ". RequestStatus::getReqTitle($status);
@@ -1462,7 +1460,6 @@ class Repository
         }catch (\GuzzleHttp\Exception\RequestException $exception){
             return null;
         }
-
     }
 
     public function handlesServicesAutomation($transaction)
@@ -1566,6 +1563,7 @@ class Repository
                         ];
                         $response = $this->makeBillPaymentApiCall($json);
                         $token = $response['token'] ?? "";
+                        $unit = $response['unit'] ?? "";
                         break;
                     case 'TV':
                         $json =  [
@@ -1613,7 +1611,7 @@ class Repository
                     $serial = isset($response['pin']) && sizeof($response['pin']) > 0 ? $response['pin'][0]['serial'] : "";
                 }
 
-                $this->updateRingoAutoResponse($response['status'], $response['message'], $transaction, $token ?? "", $response['transref'] ?? "", $serial ?? "", $json ?? [], $response ?? []);
+                $this->updateRingoAutoResponse($response['status'], $response['message'], $transaction, $token ?? "",  $unit ?? '',$response['transref'] ?? "", $serial ?? "", $json ?? [], $response ?? []);
             }
         }catch (\GuzzleHttp\Exception\RequestException $exception){
             $this->updateRingoAutoResponse("404", $exception->getMessage(), $transaction);
@@ -1642,10 +1640,10 @@ class Repository
             $this->updateAutoProcessing($transaction->ref,  $response['msg'], $response['status'], null,  $request, $response);
     }
 
-    private function updateRingoAutoResponse($status, $message, $transaction, $token = '', $reference = '', $serial = '', $request = [], $response = [])
+    private function updateRingoAutoResponse($status, $message, $transaction, $token = '', $unit = '', $reference = '', $serial = '', $request = [], $response = [])
     {
         if($status == "200")
-            $this->updateTransactionStatus($transaction->ref, RequestStatus::Approved, $transaction->ref, null, $token, $serial);
+            $this->updateTransactionStatus($transaction->ref, RequestStatus::Approved, $transaction->ref, null, $token, $serial, $unit);
         else
             $this->updateTransactionStatus($transaction->ref, RequestStatus::Failed, $transaction->ref);
         $this->updateAutoProcessing($transaction->ref,  $message, $status, $reference, $request, $response);

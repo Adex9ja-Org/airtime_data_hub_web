@@ -24,6 +24,7 @@ class MobileApiController extends Controller
         $user = $user == null ? $this->mproxy->getUserByEmail($email) : $user;
         if($user != null){
             $user = $this->mproxy->addJwtToUser($user);
+            $user->bank_name = 'Sterling Bank Plc';
             return json_encode(new JsonResponse("00", $msg, $user));
         }
         else
