@@ -1524,19 +1524,21 @@ class Repository
     {
         try {
             if($autoInfo->auto_prod_id != ''){
+
                 $splitted = explode(' ', $autoInfo->sub_name);
                 $amount = $autoInfo->sub_price > 0 ? $splitted[1]  : $transaction->amount;
+                $request = [
+                    'network_id' => $autoInfo->auto_prod_id,
+                    'amount' => $amount,
+                    'phone_number' => $transaction->cr_acc,
+                ];
                 $client = new Client();
                 $result = $client->post( config('app.sme_plug_url'). 'vtu', [
-                    'json' =>  [
-                        'network_id' => $autoInfo->auto_prod_id,
-                        'amount' => $amount,
-                        'phone_number' => $transaction->cr_acc,
-                    ],
+                    'json' =>  $request,
                     'headers' => [ 'Content-Type' => 'application/json', 'Authorization' => 'Bearer '. config('app.sme_plug_key')],
                 ] );
                 $response =  json_decode( $result->getBody(), true );
-                $this->updateSmePlugAutoResponse($response, $transaction);
+                $this->updateSmePlugAutoResponse($response, $transaction, $request);
             }
         }catch (\GuzzleHttp\Exception\RequestException $exception){
             $response = ['status' => false, 'msg' => $exception->getMessage()];
@@ -1608,10 +1610,10 @@ class Repository
                 }
                 if(isset($response['pin_based']) && $response['pin_based']){
                     $token = isset($response['pin']) && sizeof($response['pin']) > 0 ? $response['pin'][0]['pin'] : "";
-                    $serial = isset($response['serial']) && sizeof($response['pin']) > 0 ? $response['pin'][0]['serial'] : "";
+                    $serial = isset($response['pin']) && sizeof($response['pin']) > 0 ? $response['pin'][0]['serial'] : "";
                 }
 
-                $this->updateRingoAutoResponse($response['status'], $response['message'], $transaction, $token ?? "", $response['transref'] ?? "", $serial ?? "", $json ?? []);
+                $this->updateRingoAutoResponse($response['status'], $response['message'], $transaction, $token ?? "", $response['transref'] ?? "", $serial ?? "", $json ?? [], $response ?? []);
             }
         }catch (\GuzzleHttp\Exception\RequestException $exception){
             $this->updateRingoAutoResponse("404", $exception->getMessage(), $transaction);
@@ -1629,24 +1631,24 @@ class Repository
         }catch (\GuzzleHttp\Exception\RequestException $exception){}
     }
 
-    private function updateSmePlugAutoResponse($response, $transaction)
+    private function updateSmePlugAutoResponse($response, $transaction, $request = [])
     {
         if($response['status']){
             $data = $response['data'];
             $this->updateTransactionStatus($transaction->ref, RequestStatus::Approved, $data['reference']);
-            $this->updateAutoProcessing($transaction->ref, $data['msg'], $response['status'], $data['reference']);
+            $this->updateAutoProcessing($transaction->ref, $data['msg'], $response['status'], $data['reference'], $request, $response);
         }
         else
-            $this->updateAutoProcessing($transaction->ref,  $response['msg'], $response['status']);
+            $this->updateAutoProcessing($transaction->ref,  $response['msg'], $response['status'], null,  $request, $response);
     }
 
-    private function updateRingoAutoResponse($status, $message, $transaction, $token = '', $reference = '', $serial = '', $raw = [])
+    private function updateRingoAutoResponse($status, $message, $transaction, $token = '', $reference = '', $serial = '', $request = [], $response = [])
     {
         if($status == "200")
             $this->updateTransactionStatus($transaction->ref, RequestStatus::Approved, $transaction->ref, null, $token, $serial);
         else
             $this->updateTransactionStatus($transaction->ref, RequestStatus::Failed, $transaction->ref);
-        $this->updateAutoProcessing($transaction->ref,  $message, $status, $reference, json_encode($raw));
+        $this->updateAutoProcessing($transaction->ref,  $message, $status, $reference, $request, $response);
 
     }
 
@@ -1712,10 +1714,11 @@ class Repository
         return $this->table->getSingleItemWithWhere('log_entity', 'ref', $inputs);
     }
 
-    private function updateAutoProcessing($trans_ref, $msg, $status, $reference = '', $raw = '')
+    private function updateAutoProcessing($trans_ref, $msg, $status, $reference = '', $request = [], $response = [])
     {
         $v_status = $status ? 'success' : 'fail';
-        DB::update("UPDATE log_entity set msg = ?, status = ?, reference = ?, raw_req = ? WHERE ref = ?", array($msg, $v_status, $reference, $raw, $trans_ref));
+        $params = [ $msg, $v_status, $reference, json_encode($request), json_encode($response), $trans_ref];
+        DB::update("UPDATE log_entity set msg = ?, status = ?, reference = ?, raw_req = ?, raw_response = ? WHERE ref = ?", $params);
     }
 
     public function getAddonByCode($addon_code)
