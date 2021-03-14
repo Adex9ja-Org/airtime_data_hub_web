@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 class MobileApiAuthMiddleWare
 {
 
-    private $sha1 = ['5B:3E:7C:47:A3:62:AF:B4:31:45:C9:04:D9:CA:28:F9:0E:CA:93:8B', '7E:22:F2:7C:38:99:C4:B7:62:89:5B:FE:BA:AE:5E:56:1D:0E:6A:AD', '40:60:2F:F4:2D:86:B4:7D:F3:EE:01:13:66:62:98:6C:56:2B:01:59'];
+    private $sha1 = ['5B:3E:7C:47:A3:62:AF:B4:31:45:C9:04:D9:CA:28:F9:0E:CA:93:8B'];
     private $mproxy;
     /**
      * MobileApiAuthMiddleWare constructor.

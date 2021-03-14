@@ -62,7 +62,7 @@
                     <td>{{ $trans->cardSerialNo }}</td>
                 </tr>
             @endif
-            @if($trans->unit)
+            @if($trans->unit > 0)
                 <tr>
                     <td>Unit</td>
                     <td>{{ $trans->unit }}</td>

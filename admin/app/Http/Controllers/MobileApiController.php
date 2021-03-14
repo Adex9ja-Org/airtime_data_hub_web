@@ -16,6 +16,7 @@ class MobileApiController extends Controller
     private $agent_fee = 5000;
     public function __construct()
     {
+        $this->middleware(['request_encryption']);
         $this->middleware(['mobile_auth'])->except('receiptTest', 'validateLogin', 'verifyPhoneNumber', 'registerUser', 'forgotPassword');
         parent::__construct();
     }

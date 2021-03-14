@@ -14,6 +14,7 @@ return [
     */
 
     'name' => env('APP_NAME'),
+    'app_api_key' => env('APP_API_KEY'),
     'sme_plug_key' => env('SME_PLUG_KEY'),
     'sme_plug_url' => env('SME_PLUG_URL'),
     'fcm' => env('FCM_SERVER_KEY'),

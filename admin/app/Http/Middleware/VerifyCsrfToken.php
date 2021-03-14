@@ -20,6 +20,6 @@ class VerifyCsrfToken extends Middleware
      */
     protected $except = [
         "https://admin.airtimedatahub.com/api/*",
-        "http://127.0.0.1:8000/api/*"
+        "http://admin.airtimedatahub.com/api/*",
     ];
 }
