@@ -25,7 +25,7 @@ class MobileApiController extends Controller
         $user = $user == null ? $this->mproxy->getUserByEmail($email) : $user;
         if($user != null){
             $user = $this->mproxy->addJwtToUser($user);
-            $user->bank_name = 'Sterling Bank Plc';
+            $user->bank_name = 'Wema bank';
             return json_encode(new JsonResponse("00", $msg, $user));
         }
         else
@@ -297,10 +297,6 @@ class MobileApiController extends Controller
                         $this->mproxy->savePayoutRequest($inputs);
                         $payoutRequest = $this->mproxy->getPayoutRequestById($inputs['payout_id']);
                         if($payoutRequest != null){
-//                        $accountBal = $this->mproxy->getAirtime2CashAvailBal($email);
-//                        if($accountBal >= $inputs['amount']){
-//
-//                        }
                             $this->mproxy->handlesWithdrawalAutomation($payoutRequest);
                             return json_encode(new JsonResponse("00", "Withdrawal request of N". number_format($inputs['amount'], 2) . ' has been submitted successfully!', $payoutRequest));
                         }
