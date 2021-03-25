@@ -339,14 +339,19 @@ class MobileApiController extends Controller
         if($inputs['amount'] > 0){
             $accountBal = $this->mproxy->getWalletBalance($inputs['sender_email']);
             if($accountBal >= $inputs['amount']){
-                $this->mproxy->transferFund($inputs);
-                $walletTrans = $this->mproxy->getWalletTransByPayRef($inputs['payment_ref']);
-                if($walletTrans != null){
-                    $this->mproxy->sendWalletTransferNotification($walletTrans, $inputs['sender_email'], $inputs['receiver_email']);
-                    return json_encode(new JsonResponse("00", "Fund transfer of N". $inputs['amount']. ' is successful!', $walletTrans));
+                $pendingPayout = $this->mproxy->getPendingPayout($inputs['sender_email']);
+                if($pendingPayout == null){
+                    $this->mproxy->transferFund($inputs);
+                    $walletTrans = $this->mproxy->getWalletTransByPayRef($inputs['payment_ref']);
+                    if($walletTrans != null){
+                        $this->mproxy->sendWalletTransferNotification($walletTrans, $inputs['sender_email'], $inputs['receiver_email']);
+                        return json_encode(new JsonResponse("00", "Fund transfer of N". $inputs['amount']. ' is successful!', $walletTrans));
+                    }
+                    else
+                        return json_encode(new JsonResponse('-01', 'Error occurs during transfer'));
                 }
                 else
-                    return json_encode(new JsonResponse('-01', 'Error occurs during transfer'));
+                    return json_encode(new JsonResponse('-01', 'You have a pending payout request'));
             }
             else
                 return json_encode(new JsonResponse('-01', 'Insufficient Fund'));

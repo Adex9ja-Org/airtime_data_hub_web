@@ -206,9 +206,9 @@ class Repository
         return DB::select("SELECT ML.title, ML.link, MP.link as privilege from menu_link_entity as ML LEFT join menu_privilege_entity as MP on (ML.link = MP.link and MP.user_role = '$user_role')");
     }
 
-    public function getUserByEmail($email)
+    public function getUserByEmail($email, $isOnlyActive = true)
     {
-        return $this->table->getSingleItem('user_entity', 'email', $email);
+        return $this->table->getSingleItem('user_entity', 'email', $email, $isOnlyActive);
     }
 
     public function saveNewUser($input, bool $fromAdmin = false)

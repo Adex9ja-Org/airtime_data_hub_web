@@ -125,8 +125,8 @@ class UserController extends Controller
     public function userDetail(Request $request, $arg = null){
         $email = base64_decode($arg);
         $transaction = $this->mproxy->getProductTransHistory($email);
-        $userDetail = $this->mproxy->getUserByEmail($email);
-        $walletList = $this->mproxy->getWalletTransHistory($email, true);
+        $userDetail = $this->mproxy->getUserByEmail($email, false);
+        $walletList = $this->mproxy->getWalletTransHistory($email, false);
         $banks = $this->mproxy->getUserBanksByEmail($email);
         $balance = $this->mproxy->getWalletBalance($email);
         return view('user_detail', ['transaction' => $transaction, 'userDetail' => $userDetail, 'walletList' => $walletList->toArray(), 'banks' => $banks, 'balance' => $balance]);

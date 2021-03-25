@@ -104,9 +104,12 @@ class TableEntity extends Model
         }
     }
 
-    public function getSingleItem($table, $primaryKey, $searchValue)
+    public function getSingleItem($table, $primaryKey, $searchValue, $onlyActive = true)
     {
-        return $this->getSingleItemWithWhere($table, $primaryKey, [[$primaryKey, '=', $searchValue], ['active', '=', 1]] );
+        if($onlyActive)
+            return $this->getSingleItemWithWhere($table, $primaryKey, [[$primaryKey, '=', $searchValue], ['active', '=', 1]] );
+        else
+            return $this->getSingleItemWithWhere($table, $primaryKey, [[$primaryKey, '=', $searchValue]] );
     }
 
     public function getItemList($table, $primaryKey = 'id', $onlyActive = false)
