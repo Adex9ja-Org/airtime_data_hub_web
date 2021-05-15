@@ -1642,7 +1642,7 @@ class Repository
 
     private function updateRingoAutoResponse($status, $message, $transaction, $token = '', $unit = '', $reference = '', $serial = '', $request = [], $response = [])
     {
-        if($status == "200")
+        if($status == "200" || $status == "400") //approves both success and pending
             $this->updateTransactionStatus($transaction->ref, RequestStatus::Approved, $transaction->ref, null, $token, $serial, $unit);
         else
             $this->updateTransactionStatus($transaction->ref, RequestStatus::Failed, $transaction->ref);

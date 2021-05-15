@@ -210,13 +210,12 @@ class MobileApiController extends Controller
                         $this->mproxy->sendPostedTransNotifications($transaction);
                         if($inputs['service_id'] == Services::Airtime2Cash){
                             $message = 'Your airtime order has been received successfully. It takes an average of 3-5 minutes to complete this transaction';
-                            return json_encode(new JsonResponse("00", $message, $transaction));
                         }
                         else{
                             $this->mproxy->handlesServicesAutomation($transaction);
                             $message = $transaction->sub_name . " request has been submitted successfully!";
-                            return json_encode(new JsonResponse("00", $message, $transaction));
                         }
+                        return json_encode(new JsonResponse("00", $message, $transaction));
                     }
                     else
                         return json_encode(new JsonResponse("-01", "Error processing request. Please try again!"));
