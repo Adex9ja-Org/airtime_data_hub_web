@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class Repository
 {
@@ -588,10 +589,9 @@ class Repository
         return DB::select("SELECT V.*, U.fullname, S.sub_name FROM voucher_entity as V INNER JOIN user_entity as U on V.email = U.email INNER join sub_product_entity as S on V.sub_prod_id = S.sub_prod_id WHERE S.product_id = ? and V.approvalStatus = ? and date(V.created_at) BETWEEN ? and ? order by V.created_at desc", array_values($inputs));
     }
 
-    public function getAccountReserved($email)
+    public function getAccountReserved($user)
     {
-        $user = $this->getUserByEmail($email);
-        if($user->account_number == null || $user->account_number == '')
+        if(empty($user->account_number))
             return $this->reserveAccount($user);
         else
             return $user->account_number;
@@ -717,6 +717,15 @@ class Repository
         return DB::selectOne("SELECT U.fullname, V.*, S.sub_name, P.product_name, P.product_icon, P.product_description, C.per_charges from voucher_entity as V INNER join user_entity as U on V.email = U.email INNER join sub_product_entity as S on V.sub_prod_id = S.sub_prod_id INNER join product_entity as P on S.product_id = P.product_id INNER join conversion_rate_entity as C on S.conversion_id = C.conversion_id where U.email = ? ORDER by V.ref DESC LIMIT 1", array($email));
     }
 
+    public function generateRememberMeToken($user): string
+    {
+        $session_id = Str::random(20);
+        $data = [
+            'remember_token' => $session_id
+        ];
+        $this->table->updateTable('user_entity', 'email', $user->email, $data);
+        return $session_id;
+    }
 
     private function getAdminEmails()
     {

@@ -9,10 +9,10 @@ use Illuminate\Support\Facades\Artisan;
 class TestController extends Controller
 {
     public function apiTest(Request $request){
-//        $user = $this->mproxy->getUserByEmail('ainaoluwatosint@gmail.com');
+        $user = $this->mproxy->getUserByEmail('adeyemo.adeolu71@gmail.com');
 //        $response = $this->mproxy->reQueryReservedAccount($user);
-        $response = null;
-        return json_encode( new JsonResponse('00', 'successful', $response));
+        $this->mproxy->sendRegMail($user);
+        return json_encode( new JsonResponse('00', 'successful'));
     }
 
     public function verifyPayment(Request $request, $payment_ref){

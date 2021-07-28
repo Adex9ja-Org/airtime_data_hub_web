@@ -31,6 +31,12 @@ class MobileApiAuthMiddleWare
             if($user->is_email_verified != 1 || $user->active != 1){
                 redirect()->action('MobileApiErrorController@permissionDenied')->send();
             }
+            if($request->hasHeader('remember_token')){
+                $remember_token = $request->header('remember_token');
+                if(!empty($remember_token) && $user->remember_token != $remember_token){
+                    redirect()->action('MobileApiErrorController@tokenExpired')->send();
+                }
+            }
         }
 
         return $next($request);

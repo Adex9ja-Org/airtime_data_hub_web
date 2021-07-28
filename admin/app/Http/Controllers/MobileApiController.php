@@ -24,6 +24,13 @@ class MobileApiController extends Controller
     {
         $user = $user == null ? $this->mproxy->getUserByEmail($email) : $user;
         if($user != null){
+            unset($user->userRole);
+            unset($user->active);
+            unset($user->token);
+            unset($user->is_email_verified);
+            unset($user->ref_code);
+            unset($user->created_at);
+            unset($user->updated_at);
             $user = $this->mproxy->addJwtToUser($user);
             $user->bank_name = 'Wema bank';
             return json_encode(new JsonResponse("00", $msg, $user));
@@ -43,8 +50,8 @@ class MobileApiController extends Controller
         if($user != null){
             if($user->is_email_verified == 1){
                 if($user->active == 1){
-                    $account_number = $this->mproxy->getAccountReserved($user->email);
-                    $user->account_number = $account_number;
+                    $user->account_number = $this->mproxy->getAccountReserved($user);
+                    $user->remember_token = $this->mproxy->generateRememberMeToken($user);
                     return $this->getUserWithJwt($user->email, 'Login Successfully!', $user);
                 }
                 else

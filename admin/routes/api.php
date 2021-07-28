@@ -80,6 +80,7 @@ Route::get("/wallet/balance", 'MobileApiController@walletBalance');
 //Automation
 Route::post("/bill_payment/validate/{sub_prod_id}/{number}", 'MobileApiController@validateNumber');
 Route::get('/error/denied', 'MobileApiErrorController@permissionDenied');
+Route::get('/token/expired', 'MobileApiErrorController@tokenExpired');
 
 
 
